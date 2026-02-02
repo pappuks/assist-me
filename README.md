@@ -26,5 +26,6 @@ We will use the below the tools and architecture:
 - UI -> Open WebUI (local)
 - Web access -> ngrok (allows web access)
 - Tools -> MCP Server with access to all above tools
+- Ollama -> Local LLM model (OSS 20B)
 
 
