@@ -3,7 +3,7 @@ A personal assistant who takes care of your daily burden. Built with security in
 
 ## High level requirement:
 
-We will focus on building a local web based application which has access to your data and takes requests from you and performs tasks. Feew examples of things we are aiming for this tool to do:
+We will focus on building a local web based application which has access to your data and takes requests from you and performs tasks. Few examples of things we are aiming for this tool to do:
 - Create calendar entries by looking at emails, messages and notes
 - Create a weekly/daily to-do list 
 - Prepare a menu for the week
