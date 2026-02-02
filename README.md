@@ -38,3 +38,21 @@ We will use the below the tools and architecture:
 
 - If running local models you need a system with 24-32 GB RAM (on M series mac) or 16-32 GB RAM GPU.
 - For iMessage and Notes integration you need a Mac and the MCP server on the system.
+
+## Installation
+
+### ngrok 
+- Install ```brew install ngrok```
+- Go to ngrok.com and create your free login and follow instructions
+
+### Open WebUI
+- Install using ```pip install open-webui```
+- Run using ```open-webui serve```
+
+### Ollama
+- Install by going to Ollama.com and following instructions
+- Download `gpt-oss-20b` model
+
+## Build
+
+- We now use Claude Code to build our local MCP server with all the provided tools. 
