@@ -82,7 +82,13 @@ class GoogleOAuthManager:
                 }
 
                 flow = InstalledAppFlow.from_client_config(client_config, scopes)
-                creds = flow.run_local_server(port=8080)
+                # Use port 0 to let OS choose an available port dynamically
+                # This prevents "Address already in use" errors
+                creds = flow.run_local_server(
+                    port=0,
+                    open_browser=True,
+                    success_message="Authentication successful! You can close this window."
+                )
 
             # Save the credentials
             with open(creds_path, "w") as token:
