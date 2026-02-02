@@ -28,4 +28,13 @@ We will use the below the tools and architecture:
 - Tools -> MCP Server with access to all above tools
 - Ollama -> Local LLM model (OSS 20B)
 
+### Security
 
+- All data remains on your local system.
+- Access from internet is using ngrok, and we will limit access to few known email id's and integrate OAuth via Google.
+
+
+### System requirement
+
+- If running local models you need a system with 24-32 GB RAM (on M series mac) or 16-32 GB RAM GPU.
+- For iMessage and Notes integration you need a Mac and the MCP server on the system.
