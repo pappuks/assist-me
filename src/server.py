@@ -93,13 +93,14 @@ def create_server(json_response: bool = False) -> FastMCP:
     else:
         logger.warning("Skipping Gmail and Calendar tools (no OAuth credentials)")
 
-    # Slack tools
-    slack_token = settings.slack_bot_token or settings.slack_user_token
-    register_slack_tools(mcp, slack_token)
-    if slack_token:
-        logger.info("Registered Slack tools")
-    else:
-        logger.warning("Slack tools registered but require authentication")
+    # TODO: Enable Slack tools when implemented
+    # # Slack tools
+    # slack_token = settings.slack_bot_token or settings.slack_user_token
+    # register_slack_tools(mcp, slack_token)
+    # if slack_token:
+    #     logger.info("Registered Slack tools")
+    # else:
+    #     logger.warning("Slack tools registered but require authentication")
 
     # macOS-specific tools
     import platform
@@ -111,13 +112,15 @@ def create_server(json_response: bool = False) -> FastMCP:
     else:
         logger.info("Skipping iMessage and Notes tools (not on macOS)")
 
-    # WhatsApp (placeholder)
-    register_whatsapp_tools(mcp)
-    logger.info("Registered WhatsApp placeholder tools")
+    # TODO: Enable WhatsApp tools when implemented
+    # # WhatsApp (placeholder)
+    # register_whatsapp_tools(mcp)
+    # logger.info("Registered WhatsApp placeholder tools")
 
-    # Amazon (email parsing via Gmail)
-    register_amazon_tools(mcp)
-    logger.info("Registered Amazon tools (email parsing)")
+    # TODO: Enable Amazon tools when implemented
+    # # Amazon (email parsing via Gmail)
+    # register_amazon_tools(mcp)
+    # logger.info("Registered Amazon tools (email parsing)")
 
     logger.info("All tools registered successfully")
     return mcp
