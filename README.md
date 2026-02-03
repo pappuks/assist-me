@@ -38,9 +38,15 @@ Assist-Me helps you automate daily tasks such as:
 │                     (Open WebUI - Local)                    │
 └───────────────────────────┬─────────────────────────────────┘
                             │
+                ┌───────────┴───────────┐
+                │   n8n (Optional)      │
+                │  Multi-Agent Layer    │
+                │  Workflow Automation  │
+                └───────────┬───────────┘
+                            │
 ┌───────────────────────────┴─────────────────────────────────┐
 │                    MCP Server (This Project)                │
-│             Supports: HTTP (Streamable)                     │
+│                   Supports: HTTP (Streamable)               │
 │  ┌──────────┬──────────┬────────┬──────────┬────────────┐   │
 │  │  Gmail   │ Calendar │ Slack  │ iMessage │  Mac Notes │   │
 │  └──────────┴──────────┴────────┴──────────┴────────────┘   │
@@ -48,7 +54,7 @@ Assist-Me helps you automate daily tasks such as:
                             │
 ┌───────────────────────────┴─────────────────────────────────┐
 │                   Local LLM (Ollama)                        │
-│                 (e.g., gpt-oss-20b,llama2, mistral)         │
+│             (e.g., gpt-oss-20b,gemma3, ministral-3)         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -56,6 +62,9 @@ Assist-Me helps you automate daily tasks such as:
 - **stdio**: Traditional standard input/output (for CLI and local desktop apps)
 - **HTTP**: Streamable HTTP transport (for web applications and remote access)
 - **both**: Run both transports simultaneously
+
+**Optional Integration Layer:**
+- **n8n**: An optional workflow automation platform that can sit between Open WebUI and the MCP server to build multi-agentic workflows. n8n can orchestrate complex automation tasks, combine multiple MCP tools, and expose these workflows as additional MCP servers back to Open WebUI. This enables powerful composition of AI agents and tools for advanced automation scenarios.
 
 ## Quick Start
 

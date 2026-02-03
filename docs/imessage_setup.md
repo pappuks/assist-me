@@ -7,220 +7,231 @@ This guide explains how to set up iMessage integration for the Assist-Me MCP ser
 ## Prerequisites
 
 - macOS operating system
-- Messages app installed and configured
-- Terminal/Python access to Messages (see permissions below)
+- Messages app installed and configured with message history
+- Full Disk Access permission for your Terminal or Python environment
 
 ## Approach
 
-The iMessage tools use AppleScript to interact with the Messages app on macOS. This provides read-only access to your messages.
+The iMessage tools use **direct SQLite database access** to read Messages data on macOS. This provides reliable, read-only access to your messages with full search functionality and better performance than AppleScript.
 
-## Step 1: Grant Terminal Access
+**Database Location**: `~/Library/Messages/chat.db`
 
-macOS requires permission for Terminal (or your Python environment) to control the Messages app:
+## Step 1: Grant Full Disk Access
 
-1. Open **System Preferences/Settings**
-2. Go to **Security & Privacy** > **Privacy**
-3. Select **Automation** in the left sidebar
-4. Find **Terminal** (or your terminal app) in the list
-5. Check the box next to **Messages** to grant access
+macOS requires Full Disk Access permission to read the Messages database:
 
-### For Python/Virtual Environments
+1. Open **System Settings** (or **System Preferences** on older macOS)
+2. Go to **Privacy & Security** > **Privacy**
+3. Select **Full Disk Access** in the left sidebar
+4. Click the **lock icon** at the bottom to make changes (you'll need to authenticate)
+5. Click the **+** button
+6. Add your application:
+   - **Terminal** (if running from terminal)
+   - **Python** or **Python.app** (if running directly)
+   - **VS Code** or your IDE (if running from an IDE)
+7. **Restart** the application after granting access
 
-If running from a virtual environment or Python directly:
+### Verifying Access
 
-1. You may need to grant access to `Python` or `Python.app`
-2. The first time you run an iMessage tool, macOS may prompt you
-3. Click **OK** to allow access
+After granting Full Disk Access, you can verify it works by running:
+
+```bash
+sqlite3 ~/Library/Messages/chat.db "SELECT COUNT(*) FROM message"
+```
+
+If this returns a number, access is working correctly. If you see "unable to open database file", the permission hasn't been granted yet or the application needs to be restarted.
 
 ## Step 2: No Additional Configuration Required
 
-Unlike cloud services, iMessage access doesn't require API keys or OAuth. The tools work directly with your local Messages app.
+Unlike cloud services, iMessage access doesn't require API keys or OAuth. The tools work directly with your local Messages database.
 
 ## Available Tools
 
-- `imessage_list_recent_conversations` - List recent conversations
-- `imessage_read_messages` - Read messages from a specific contact
-- `imessage_search_messages` - Search messages (placeholder)
-- `imessage_check_availability` - Check if iMessage tools are available
+The iMessage tools now use direct database access for reliable functionality:
+
+- `imessage_check_availability` - Check if iMessage tools are available and verify permissions
+- `imessage_list_recent_conversations` - List recent conversations with last message preview
+- `imessage_get_contact_list` - Get all contacts you've messaged with
+- `imessage_read_messages` - Read messages from a specific contact or phone number
+- `imessage_search_messages` - Search for messages containing specific text (fully functional)
 
 ## Usage Examples
 
-### Check Availability
+### Check Availability and Permissions
 ```python
 await imessage_check_availability()
-# Returns system info and requirements
+# Returns:
+# {
+#   "available": true/false,
+#   "platform": "Darwin",
+#   "database_path": "/Users/you/Library/Messages/chat.db",
+#   "error": "...", (if not accessible)
+#   "setup_instructions": "..." (if permissions needed)
+# }
 ```
 
 ### List Recent Conversations
 ```python
 await imessage_list_recent_conversations(limit=20)
-# Returns list of recent contacts/chats
+# Returns list of recent contacts with:
+# - Contact identifier (phone/email)
+# - Last message preview
+# - Last message date
+# - Total message count
+```
+
+### Get All Contacts
+```python
+await imessage_get_contact_list()
+# Returns all contacts you've messaged with, sorted by most recent
 ```
 
 ### Read Messages from a Contact
 ```python
 await imessage_read_messages(
-    contact="John Smith",  # Or phone number
-    limit=20
+    contact="+15551234567",  # Use full phone number or email
+    limit=50
 )
+# Returns messages in chronological order with:
+# - Message text
+# - Timestamp
+# - Sender (you or the contact)
+# - Attachment indicator
 ```
 
-## Current Limitations
-
-The current implementation uses AppleScript, which has some limitations:
-
-1. **Basic Implementation**: The AppleScript approach provides basic functionality
-2. **No Full-Text Search**: Advanced search requires database access
-3. **Parsing Complexity**: AppleScript output requires parsing
-4. **Performance**: Slower than direct database access
-
-## Advanced Implementation: Direct Database Access
-
-For production use, consider accessing the Messages database directly:
-
-### Database Location
-```
-~/Library/Messages/chat.db
-```
-
-### Approach
-
-1. **Use SQLite**: The Messages database is SQLite
-2. **Grant Full Disk Access**: Required to read the database
-3. **Read-Only Mode**: Open database in read-only mode
-4. **Query Messages**: Use SQL to query messages
-
-### Example SQL Queries
-
-```sql
--- List recent conversations
-SELECT DISTINCT handle.id, MAX(message.date) as last_message
-FROM message
-JOIN handle ON message.handle_id = handle.ROWID
-GROUP BY handle.id
-ORDER BY last_message DESC
-LIMIT 20;
-
--- Get messages from a specific contact
-SELECT text, date, is_from_me
-FROM message
-JOIN handle ON message.handle_id = handle.ROWID
-WHERE handle.id = '+15551234567'
-ORDER BY date DESC
-LIMIT 50;
-
--- Search messages
-SELECT text, date, handle.id
-FROM message
-JOIN handle ON message.handle_id = handle.ROWID
-WHERE text LIKE '%search term%'
-ORDER BY date DESC
-LIMIT 100;
-```
-
-### Implementation Example
-
+### Search Messages
 ```python
-import sqlite3
-from pathlib import Path
+# Search all messages
+await imessage_search_messages(
+    query="meeting tomorrow",
+    limit=50
+)
 
-db_path = Path.home() / "Library" / "Messages" / "chat.db"
-
-# Open in read-only mode
-conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-cursor = conn.cursor()
-
-# Query messages
-cursor.execute("""
-    SELECT text, date, is_from_me
-    FROM message
-    WHERE handle_id = ?
-    ORDER BY date DESC
-    LIMIT 50
-""", (handle_id,))
-
-messages = cursor.fetchall()
+# Search messages from specific contact
+await imessage_search_messages(
+    query="meeting tomorrow",
+    contact="+15551234567",
+    limit=50
+)
+# Returns matching messages with full context
 ```
 
-## Granting Full Disk Access
+## Key Features
 
-If using direct database access:
+The direct database implementation provides:
 
-1. Open **System Preferences** > **Security & Privacy**
-2. Go to **Privacy** tab
-3. Select **Full Disk Access** in the left sidebar
-4. Click the lock to make changes
-5. Click **+** and add:
-   - Terminal (if running from terminal)
-   - Python (if running directly)
-   - Your IDE (if running from VS Code, PyCharm, etc.)
-6. Restart the application after granting access
+1. **Full Functionality**: All features work reliably
+2. **Full-Text Search**: Search across all messages or within specific conversations
+3. **Better Performance**: Direct SQL queries are fast and efficient
+4. **Rich Metadata**: Access to timestamps, attachments, message direction
+5. **Contact Discovery**: List all contacts and find similar contact IDs
+6. **Error Handling**: Clear error messages with setup instructions
 
-## Database Schema
+## Database Schema Reference
 
-The Messages database has several important tables:
+The Messages database uses these main tables:
 
-- `message` - Contains message text and metadata
-- `handle` - Contains contact information (phone/email)
-- `chat` - Contains conversation information
+- `message` - Contains message text, timestamps, and metadata
+- `handle` - Contains contact information (phone numbers/emails)
+- `chat` - Contains conversation information (including group chats)
 - `chat_message_join` - Links messages to conversations
-- `attachment` - Contains file attachments
+- `attachment` - Contains file attachments and media
+
+### Useful Database Fields
+
+From the `message` table:
+- `text` - Message content
+- `date` - Timestamp (nanoseconds since Apple epoch: 2001-01-01)
+- `is_from_me` - Boolean indicating if you sent the message
+- `cache_has_attachments` - Boolean indicating if message has attachments
+- `handle_id` - Foreign key to the contact
+
+From the `handle` table:
+- `id` - Contact identifier (phone number or email)
+- `service` - Service type (iMessage, SMS, etc.)
 
 ## Troubleshooting
 
-### Permission Denied
+### Permission Denied Errors
 
-- **"Not authorized to send Apple events"**: Grant Terminal access in System Preferences
-- **"Messages doesn't understand"**: Ensure Messages app is installed and running
-- **Database locked**: Close Messages app when accessing database directly
+**Error: "unable to open database file"**
+- You need to grant Full Disk Access permission (see Step 1 above)
+- Make sure you've restarted the application after granting permission
+- Verify the Messages app has created message history
+
+**Error: "Database not found"**
+- Ensure Messages app is installed and has been opened at least once
+- Check that you have message history in the Messages app
+
+**Error: "Database locked"**
+- The Messages app may have the database locked
+- This should not normally happen with read-only access
+- Try closing and reopening the Messages app
+
+### Contact Identifier Format
+
+**Phone Numbers**: Must use the exact format stored in the database
+- Usually includes country code: `+15551234567`
+- Use `imessage_get_contact_list()` to see the exact format
+- The `imessage_read_messages` tool will suggest similar contacts if not found
+
+**Email Addresses**: Use the exact email address as stored
+
+**Tip**: Use `imessage_list_recent_conversations()` to see recent contacts with their exact identifiers
+
+### No Messages Returned
+
+**No results from search or read:**
+- Double-check the contact identifier format (use exact phone/email from database)
+- Use `imessage_get_contact_list()` to find the correct identifier
+- Ensure the contact actually has message history
 
 ### macOS Version Differences
 
-- Database schema may vary slightly between macOS versions
-- Test queries on your specific macOS version
-- Dates in the database use Apple's epoch (2001-01-01)
-
-### Converting Apple Dates
-
-Messages database uses seconds since 2001-01-01:
-
-```python
-from datetime import datetime, timedelta
-
-def convert_apple_date(apple_date):
-    # Apple epoch: 2001-01-01
-    apple_epoch = datetime(2001, 1, 1)
-    return apple_epoch + timedelta(seconds=apple_date)
-```
+- Database schema is generally consistent across recent macOS versions
+- Dates in the database use Apple's epoch (2001-01-01) stored as nanoseconds
+- The tools automatically handle date conversion
 
 ## Security and Privacy Notes
 
 - **Local Access Only**: Messages data never leaves your machine
-- **Read-Only**: These tools only read messages, never send or modify
+- **Read-Only Access**: These tools only read messages, never send or modify
 - **Sensitive Data**: iMessage contains sensitive personal communications
-- **Access Logs**: macOS logs automation access in Console.app
-- **Full Disk Access**: Be cautious granting this permission
+- **Full Disk Access**: Be cautious granting this permission - it provides access to all your files
+- **Recommended**: Only grant Full Disk Access to trusted applications
+- **Audit**: Check what apps have Full Disk Access periodically in System Settings
+
+## Current Limitations
+
+1. **Read-Only**: Cannot send messages or modify existing messages
+2. **Attachments**: Can detect attachments but doesn't extract attachment content
+3. **Group Chats**: Currently treats group chats individually (by contact ID)
+4. **Reactions**: Message reactions are stored as separate messages
+5. **Contact Names**: Shows phone/email identifiers, not contact names from Contacts.app
 
 ## Alternative Approach: Export Messages
 
-For occasional use:
+For one-time or occasional use without granting Full Disk Access:
 
 1. Open Messages app
 2. Select conversation
 3. File > Export Chat
 4. Save as text file
-5. Parse the exported file
+5. Read the exported file directly
 
-## Future Enhancements
+This approach doesn't require Full Disk Access but is manual and limited.
 
-Potential improvements for production use:
+## Future Enhancement Ideas
 
-1. Direct SQLite database access
-2. Full-text search using SQLite FTS
-3. Attachment handling
-4. Group message support
-5. Message reactions and effects
-6. Contact name resolution using Contacts.app
+Potential improvements for future versions:
+
+1. Attachment content extraction
+2. Group message thread reconstruction
+3. Contact name resolution via Contacts.app
+4. Message reaction parsing
+5. Full-text search using SQLite FTS5
+6. Date range filtering
+7. Message statistics and analytics
 
 ## References
 
