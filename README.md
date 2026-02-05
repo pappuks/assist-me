@@ -159,7 +159,29 @@ The server will:
 
 For detailed HTTP transport configuration, see [docs/http_transport.md](docs/http_transport.md)
 
-### 5. Install Open WebUI (Optional)
+### 5. Connect to Claude Desktop (Optional)
+
+Claude Desktop only supports stdio-based MCP servers, so you need `mcp-remote` to bridge to your HTTP server. This requires Node.js/npx to be installed.
+
+Add the following to your Claude Desktop configuration file at `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "assist-me": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:8090/mcp"
+      ]
+    }
+  }
+}
+```
+
+Restart Claude Desktop to pick up the new configuration. The `mcp-remote` proxy will be downloaded automatically on first use via npx.
+
+### 6. Install Open WebUI (Optional)
 
 ```bash
 # Install Open WebUI
@@ -171,7 +193,7 @@ open-webui serve
 
 Then configure Open WebUI to connect to the MCP server.
 
-### 6. Install Ollama (Optional, for local LLM)
+### 7. Install Ollama (Optional, for local LLM)
 
 ```bash
 # Install Ollama
@@ -183,7 +205,7 @@ ollama pull llama2
 ollama pull mistral
 ```
 
-### 7. Setup ngrok (Optional, for remote access)
+### 8. Setup ngrok (Optional, for remote access)
 
 ```bash
 # Install ngrok
